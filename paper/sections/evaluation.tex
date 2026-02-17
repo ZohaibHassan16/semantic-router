@@ -121,24 +121,28 @@ Cache hits eliminate backend model invocation entirely, reducing per-request cos
 
 \subsection{Unified MoM Evaluation Framework}
 
-To ensure the robustness of the Mixture of Models (MoM) collection, we developed a unified evaluation pipeline capable of assessing both merged models and LoRA adapters across diverse tasks (Text and Token Classification).
+To validate the robustness of the Mixture of Models (MoM) collection, we implemented a unified evaluation pipeline that benchmarks both merged models and LoRA adapters. The framework standardizes the assessment of heterogeneous model variants across intent classification and PII detection tasks.
 
-The framework, illustrated in \Cref{fig:eval_pipeline}, addresses the heterogeneity of the 10+ active models by standardizing the evaluation flow.Key architectural features include:
+The evaluation architecture, shown in \Cref{fig:eval_pipeline}, utilizes the following components:
 
 \begin{itemize}
-    \item \textbf{Dynamic Data Alignment:} Specialized data loaders normalize inputs from diverse sources, including MMLU-Pro for intent classification and synthetic Presidio data for PII detection, while automatically filtering samples by language (e.g., distinguishing between \texttt{es}, \texttt{fr}, \texttt{zh}) to validate cross-lingual performance.
-    \item \textbf{LoRA vs. Merged Comparison:} The pipeline supports toggleable evaluation between full fine-tuned checkpoints and LoRA adapters loaded onto the \texttt{ModernBERT-base} backbone, ensuring that the memory efficiency gains described in \Cref{tab:lora_memory} do not come at the cost of predictive quality.
-    \item \textbf{Robust Parallel Inference:} To handle large-scale benchmarks, the system utilizes \texttt{ProcessPoolExecutor} for parallel model evaluation with built-in OOM (Out-Of-Memory) recovery and exponential backoff strategies for network reliability.
+    \item \textbf{Schema Normalization:} Inputs from diverse sources—including MMLU-Pro for intent and Presidio for token classification—are mapped to a common evaluation schema.
+    \item \textbf{Comparative Quality Validation:} The system computes weighted F1-scores and per-class precision/recall to ensure that the memory efficiency gains reported in \Cref{tab:lora_memory} do not result in significant predictive degradation compared to full-parameter models.
+    \item \textbf{Parallelized Benchmarking:} Large-scale evaluations are executed via \texttt{ProcessPoolExecutor} to minimize wall-clock time. The pipeline incorporates automated OOM recovery and exponential backoff for API-based signal providers to ensure benchmark reliability.
 \end{itemize}
 
-We report comprehensive metrics including accuracy, weighted F1-score, and per-class precision/recall, alongside p50/p99 latency profiling to verify that model quality meets production standards before deployment.
+Results include p50 and p99 latency profiling to confirm that model orchestration remains within the operational bounds required for real-time routing.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=\linewidth]{figures/evaluation_flow.svg}
-    \caption{The Unified MoM Evaluation Pipeline. The system parallelizes evaluation across the model registry, handling dynamic dataset loading (Presidio, MMLU-Pro), language filtering, and comparative metrics generation for both Merged and LoRA model variants.}
+    \caption{Unified MoM evaluation pipeline. The system parallelizes assessment across the model registry, managing dynamic dataset loading and comparative metric generation for merged and LoRA variants.}
     \label{fig:eval_pipeline}
 \end{figure}
+
+\subsection{Open Evaluation}
+
+Detailed model selection quality comparisons across algorithms, HaluGate detection accuracy on standard benchmarks (HaluEval, FActScore), and large-scale routing quality evaluation are under preparation in collaboration with the RouterArena team.
 
 \paragraph{Contributors.}
 Senan Zedan, Xunzhuo, yehudit1987, abdallahsamabd, Noa Limoy, Yossi Ovadia, Liav Weiss, Huamin Chen, samzong, Jintao Zhang, asaadbalum, Xunzhuo, Srinivas A, Marina Koushnir, Chever John, Chaojun Zhang, Avishek Goswami, Zohaib Hassnain.
